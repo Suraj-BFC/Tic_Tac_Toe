@@ -18,30 +18,36 @@ const players = [
 
 function init() {
   const view = new View();
-  const store = new Store(players);
+  const store = new Store("live-t3-storage-key", players);
+
+  function initView() {
+    view.closeAll();
+    view.clearMoves();
+    view.setTrunIndicator(store.game.currentPlayer);
+    view.updateScoreboard(
+      store.stats.playerWithStats[0].wins,
+      store.stats.playerWithStats[1].wins,
+      store.stats.ties
+    );
+    view.initializeMoves(store.game.moves);
+  }
+
+  window.addEventListener("storage", () => {
+    initView();
+  });
+
+  initView();
 
   view.bindGameResetEvent((event) => {
-    view.closeAll();
     store.reset();
-    view.clearMoves();
-    view.setTrunIndicator(store.game.currentPlayer);
-    view.updateScoreboard(
-      store.stats.playerWithStats[0].wins,
-      store.stats.playerWithStats[1].wins,
-      store.stats.ties
-    );
+    initView();
   });
+
   view.bindNewRoundEvent((event) => {
     store.newRound();
-    view.closeAll();
-    view.clearMoves();
-    view.setTrunIndicator(store.game.currentPlayer);
-    view.updateScoreboard(
-      store.stats.playerWithStats[0].wins,
-      store.stats.playerWithStats[1].wins,
-      store.stats.ties
-    );
+    initView();
   });
+
   view.bindPlayerMoveEvent((square) => {
     const existingMove = store.game.moves.find(
       (move) => move.squareId === +square.id
