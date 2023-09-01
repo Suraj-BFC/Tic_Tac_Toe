@@ -1,7 +1,10 @@
-export default class View {
-  $ = {};
+import { Game, Move, Player } from "./types";
+import Store from "./store";
 
-  $$ = {};
+export default class View {
+  $: Record<string, Element> = {};
+
+  $$: Record<string, NodeListOf<Element>> = {};
 
   constructor() {
     this.$.menu = this.#qs('[data-id="menu"]');
@@ -26,7 +29,7 @@ export default class View {
     });
   }
 
-  render(game, stats) {
+  render(game: Store["game"], stats: Store["stats"]) {
     const { playerWithStats, ties } = stats;
     const {
       moves,
@@ -51,16 +54,16 @@ export default class View {
     this.#setTrunIndicator(currentPlayer);
   }
 
-  bindGameResetEvent(handler) {
+  bindGameResetEvent(handler: EventListener) {
     this.$.resetBtn.addEventListener("click", handler);
     this.$.modalBtn.addEventListener("click", handler);
   }
 
-  bindNewRoundEvent(handler) {
+  bindNewRoundEvent(handler: EventListener) {
     this.$.newRoundBtn.addEventListener("click", handler);
   }
 
-  bindPlayerMoveEvent(handler) {
+  bindPlayerMoveEvent(handler: (el: Element) => void) {
     this.#delegate(this.$.grid, '[data-id="square"]', "click", handler);
 
     // this.$$.squares.forEach((square) => {
@@ -68,15 +71,15 @@ export default class View {
     // });
   }
 
-  #updateScoreboard(p1Wins, p2Wins, ties) {
-    this.$.p1Wins.innerText = `${p1Wins} wins`;
-    this.$.p2Wins.innerText = `${p2Wins} wins`;
-    this.$.ties.innerText = `${ties} ties`;
+  #updateScoreboard(p1Wins: number, p2Wins: number, ties: number) {
+    this.$.p1Wins.textContent = `${p1Wins} wins`;
+    this.$.p2Wins.textContent = `${p2Wins} wins`;
+    this.$.ties.textContent = `${ties} ties`;
   }
 
-  #openModal(message) {
+  #openModal(message: string) {
     this.$.modal.classList.remove("hidden");
-    this.$.modaltext.innerText = message;
+    this.$.modaltext.textContent = message;
   }
 
   #closeAll() {
@@ -90,7 +93,7 @@ export default class View {
     });
   }
 
-  #initializeMoves(moves) {
+  #initializeMoves(moves: Move[]) {
     this.$$.squares.forEach((square) => {
       const existingMove = moves.find((move) => move.squareId === +square.id);
       if (existingMove) {
@@ -106,7 +109,9 @@ export default class View {
   #closeMenu() {
     this.$.menuItems.classList.add("hidden");
     this.$.menuBtn.classList.remove("border");
-    const icon = this.$.menuBtn.querySelector("i");
+
+    const icon = this.#qs("i", this.$.menuBtn);
+
     icon.classList.add("fa-chevron-down");
     icon.classList.remove("fa-chevron-up");
   }
@@ -115,18 +120,18 @@ export default class View {
     this.$.menuItems.classList.toggle("hidden");
     this.$.menuBtn.classList.toggle("border");
 
-    const icon = this.$.menuBtn.querySelector("i");
+    const icon = this.#qs("i", this.$.menuBtn);
     icon.classList.toggle("fa-chevron-down");
     icon.classList.toggle("fa-chevron-up");
   }
 
-  #handlePlayerMove(squareEl, player) {
+  #handlePlayerMove(squareEl: Element, player: Player) {
     const icon = document.createElement("i");
     icon.classList.add("fa-solid", player.iconClass, player.colorClass);
     squareEl.replaceChildren(icon);
   }
 
-  #setTrunIndicator(player) {
+  #setTrunIndicator(player: Player) {
     const icon = document.createElement("i");
     const label = document.createElement("p");
 
@@ -138,7 +143,7 @@ export default class View {
     this.$.turn.replaceChildren(icon, label);
   }
 
-  #qs(selector, parent) {
+  #qs(selector: string, parent?: Element) {
     const el = parent
       ? parent.querySelector(selector)
       : document.querySelector(selector);
@@ -146,14 +151,23 @@ export default class View {
     return el;
   }
 
-  #qsAll(selector) {
+  #qsAll(selector: string) {
     const elList = document.querySelectorAll(selector);
     if (!elList) throw new Error("Could not find elements");
     return elList;
   }
 
-  #delegate(el, selector, eventKey, handler) {
+  #delegate(
+    el: Element,
+    selector: string,
+    eventKey: string,
+    handler: (el: Element) => void
+  ) {
     el.addEventListener(eventKey, (event) => {
+      if (!(event.target instanceof Element)) {
+        throw new Error("Event target not found");
+      }
+
       if (event.target.matches(selector)) {
         handler(event.target);
       }

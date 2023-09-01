@@ -1,0 +1,11 @@
+{
+  "name": "@suraj/tic_tac_toe",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Suraj-BFC/Tic_Tac_Toe.git",
+  "author": "Suraj Bhandari <bhandarisuraj009@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
